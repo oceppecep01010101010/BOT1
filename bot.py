@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from config import token  # Import the bot's token from configuration file
+from config import TOKEN  # Import the bot's token from configuration file
 
 intents = discord.Intents.default()
 intents.members = True  # Allows the bot to work with users and ban them
@@ -11,6 +11,26 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user.name}')
+
+@bot.event
+async def on_member_join(member):
+    # Mengirim pesan ucapan selamat
+    for channel in member.guild.text_channels:
+        await channel.send(f'Selamat datang, {member.mention}!')   
+
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+    
+    if "https://" in message.content:
+        if message.author == message.guild.owner:
+            await message.channel.send("Owner will not be banned.")
+        else:
+            await message.author.ban(reason="Sending links in the chat.")
+            await message.channel.send(f'{message.author.mention} has been banned for sending links.')
+
+    await bot.process_commands(message)
 
 @bot.command()
 async def start(ctx):
@@ -35,4 +55,6 @@ async def ban_error(ctx, error):
     elif isinstance(error, commands.MemberNotFound):
         await ctx.send("User not found.")
 
-bot.run(token)
+
+
+bot.run(TOKEN)
